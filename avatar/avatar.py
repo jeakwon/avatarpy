@@ -4,11 +4,12 @@ from avatar.animate import Animate
 
 import numpy as np
 import pandas as pd
+from scipy.stats import zscore
 
 class Avatar(Core):
     _nodes={
         'nose'  :[0,1,2],
-        'neck'  :[3,4,5],
+        'neck'  :[3,4,5],   
         'anus'  :[6,7,8],
         'chest' :[9,10,11],
         'rfoot' :[12,13,14],
@@ -42,7 +43,7 @@ class Avatar(Core):
         'rleg':{'left':'rleg', 'right':'hbody'},
     }
 
-    def __init__(self, csv_path, frame_rate=20, ID=None):
+    def __init__(self, csv_path, frame_rate=20, ID=None, horizontal_correction=True):
         self.csv_path = csv_path
         self.data = pd.read_csv(csv_path, header=None)
         self.frame_rate=frame_rate
@@ -51,6 +52,12 @@ class Avatar(Core):
         self.tags=[]
         self.set_nodes()
         self.set_vectors()
+        
+        if horizontal_correction:
+            self.data = self.transform.level().data
+            self.set_nodes()
+            self.set_vectors()
+
 
     def __repr__(self):
         tags = '\n'.join('# '+tag for tag in self.tags)
@@ -101,7 +108,14 @@ class Avatar(Core):
     def unit_vector_y(self):return self.get_unit_vector(axis='y')
     @property
     def unit_vector_z(self):return self.get_unit_vector(axis='z')
-    
+    @property
+    def node_data(self):
+        return self.get_node_data(self.nodes.keys())
+
+    def get_node_data(self, nodes):
+        labeled_data = [self[node].assign(node=node) for node in nodes]
+        return pd.concat(labeled_data).sort_index()
+
     def get_unit_vector(self, axis):
         if axis=='x': arr = np.array([1,0,0])
         elif axis=='y': arr = np.array([0,1,0])
