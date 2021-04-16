@@ -44,12 +44,11 @@ class Avatar(Core):
     }
 
     def __init__(self, csv_path, frame_rate=20, ID=None, horizontal_correction=True):
-        self.csv_path = csv_path
-        self.data = pd.read_csv(csv_path, header=None)
-        self.frame_rate=frame_rate
+        self._csv_path = csv_path
+        self._data = pd.read_csv(csv_path, header=None)
+        self._frame_rate = frame_rate
         if frame_rate: self.data.index/=frame_rate
-        self.ID=ID if ID else self.csv_path
-        self.tags=[]
+        self._ID=ID if ID else self.csv_path
         self.set_nodes()
         self.set_vectors()
         
@@ -58,65 +57,154 @@ class Avatar(Core):
             self.set_nodes()
             self.set_vectors()
 
+    @property
+    def csv_path(self):
+        """Original coordinates file path"""
+        return self._csv_path
+    @csv_path.setter
+    def csv_path(self, v):
+        self._csv_path = v
+    @property
+    def data(self):
+        """Raw data of repeated x, y, z coordinates of nodes"""
+        return self._data
+    @data.setter
+    def data(self, v):
+        self._data = v
+    @property
+    def frame_rate(self):
+        """Number of frames recorded in 1 second. (a.k.a. data rate, sampling rate)"""
+        return self._frame_rate
+    @frame_rate.setter
+    def frame_rate(self, v):
+        self._frame_rate = v
+    @property
+    def ID(self):
+        """User provided ID for avatar instance. (default: csv_path)"""
+        return self._ID
+    @ID.setter
+    def ID(self, v):
+        self._ID = v
 
     def __repr__(self):
-        tags = '\n'.join('# '+tag for tag in self.tags)
-        return f'Avatar({self.ID})\n{tags}'
-    
-    def add_tag(self, tag):
-        assert isinstance(tag, str), 'tag should be str'
-        self.tags.append(tag)
-        return self
+        return f'Avatar({self.ID})'
+
+    @property
+    def help(self):
+        """Prints list of available functions and attributes of avatar"""
+        functions, attributes  = [], []
+        for item in dir(self.__class__):
+            if item.startswith('_'):
+                continue
+            docstring = getattr(self.__class__, item).__doc__
+            headline = docstring.split('\n')[0].strip() if docstring else ''
+            if callable(getattr(self.__class__, item)):
+                functions.append(f"\t{item}: {headline}")
+            else:
+                attributes.append(f"\t{item}: {headline}")
+        funcs = '\n'.join(functions)
+        attrs = '\n'.join(attributes)
+        print(f"""Functions:\n{funcs}\nAttributes:\n{attrs}""")
             
     def set_nodes(self):
+        """Set node attributes in avatar with predefined node info in `cls._nodes`"""
         for name, cols in self._nodes.items():
             data = self.get_node(cols)
             setattr(self, name, data)
     
     def set_vectors(self):
+        """Set vector attributes in avatar with predefined vector info in `cls._nodes`"""
         for name, labels in self._vectors.items():
             data = self.get_vector(self[labels['head']], self[labels['tail']])
             setattr(self, name, data)
             
     @property
-    def index(self):return self.data.index
+    def index(self):
+        """Index of recording timecourse. If frame rate is provided, unit is second"""
+        return self.data.index
+
     @property
-    def nodes(self):return {key:self[key] for key in self._nodes.keys()}
+    def nodes(self):
+        """Dictionary of all nodes data"""
+        return {key:self[key] for key in self._nodes.keys()}
+
     @property
-    def vectors(self):return {key:self[key] for key in self._vectors.keys()}
+    def vectors(self):
+        """Dictionary of all vectors data"""
+        return {key:self[key] for key in self._vectors.keys()}
+
     @property
-    def x(self): return self.get_axis_data('x')
+    def x(self): 
+        """x coordindates of nodes and vectors"""
+        return self.get_axis_data('x')
+
     @property
-    def y(self): return self.get_axis_data('y')
+    def y(self): 
+        """y coordindates of nodes and vectors"""
+        return self.get_axis_data('y')
+
     @property
-    def z(self): return self.get_axis_data('z')
+    def z(self): 
+        """z coordindates of nodes and vectors"""
+        return self.get_axis_data('z')
+
     @property
-    def x_max(self):return self.x[self.nodes].values.max()
+    def x_max(self):
+        """Maximum x coord value among all nodes"""
+        return self.x[self.nodes].values.max()
+
     @property
-    def x_min(self):return self.x[self.nodes].values.min()
+    def x_min(self):
+        """Minimum x coord value among all nodes"""
+        return self.x[self.nodes].values.min()
+
     @property
-    def y_max(self):return self.y[self.nodes].values.max()
+    def y_max(self):
+        """Maximum y coord value among all nodes"""
+        return self.y[self.nodes].values.max()
+
     @property
-    def y_min(self):return self.y[self.nodes].values.min()
+    def y_min(self):
+        """Minimum y coord value among all nodes"""
+        return self.y[self.nodes].values.min()
+
     @property
-    def z_max(self):return self.z[self.nodes].values.max()
+    def z_max(self):
+        """Maximum z coord value among all nodes"""
+        return self.z[self.nodes].values.max()
+
     @property
-    def z_min(self):return self.z[self.nodes].values.min()
+    def z_min(self):
+        """Minimum z coord value among all nodes"""
+        return self.z[self.nodes].values.min()
+
     @property
-    def unit_vector_x(self):return self.get_unit_vector(axis='x')
+    def unit_vector_x(self):
+        """Numpy 2d array (N x 3) of x unit vector [1,0,0]"""
+        return self.get_unit_vector(axis='x')
+
     @property
-    def unit_vector_y(self):return self.get_unit_vector(axis='y')
+    def unit_vector_y(self):
+        """Numpy 2d array (N x 3) of y unit vector [0,1,0]"""
+        return self.get_unit_vector(axis='y')
+
     @property
-    def unit_vector_z(self):return self.get_unit_vector(axis='z')
+    def unit_vector_z(self):
+        """Numpy 2d array (N x 3) of z unit vector. [0,0,1]"""
+        return self.get_unit_vector(axis='z')
+
     @property
     def node_data(self):
+        """Coords data with labels of all nodes. [x, y, z, node]"""
         return self.get_node_data(self.nodes.keys())
 
     def get_node_data(self, nodes):
+        """Returns coords data with labels of provided nodes names"""
         labeled_data = [self[node].assign(node=node) for node in nodes]
         return pd.concat(labeled_data).sort_index()
 
     def get_unit_vector(self, axis):
+        """Returns numpy 2d array (N x 3) of given axis unit vector"""
         if axis=='x': arr = np.array([1,0,0])
         elif axis=='y': arr = np.array([0,1,0])
         elif axis=='z': arr = np.array([0,1,0])
