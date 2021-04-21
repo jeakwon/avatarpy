@@ -1,2 +1,2 @@
-# avatar
-avatar
+# avatarpy
+Python analysis module for AVATAR

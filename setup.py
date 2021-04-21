@@ -7,7 +7,7 @@ setup(
     author              = 'jeakwon',
     author_email        = 'onlytojay@gmail.com',
     url                 = 'https://github.com/jeakwon/avatarpy',
-    install_requires    =  ['numpy', 'pandas', 'sklearn', 'plotly', 'cufflinks', 'matplotlib', 'seaborn', 'scipy'],
+    install_requires    =  ['numpy', 'pandas', 'scipy', 'sklearn', 'jupyter',  'plotly', 'cufflinks', 'matplotlib', 'seaborn'],
     packages            = find_packages(exclude = []),
     keywords            = ['avatarpy'],
     python_requires     = '>=3',
