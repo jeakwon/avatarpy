@@ -11,7 +11,7 @@ setup(
     packages            = find_packages(exclude = []),
     keywords            = ['avatarpy'],
     python_requires     = '>=3',
-    package_data        = {},
+    package_data={'': ['data/*.csv']},
     zip_safe            = False,
     classifiers         = [
         'Programming Language :: Python :: 3.6',
