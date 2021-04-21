@@ -1,6 +1,6 @@
-from avatar.core import Core
-from avatar.transform import Transform
-from avatar.animate import Animate
+from avatarpy.core import Core
+from avatarpy.transform import Transform
+from avatarpy.animate import Animate
 
 import numpy as np
 import pandas as pd
