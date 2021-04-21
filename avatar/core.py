@@ -5,18 +5,24 @@ class Core:
         return getattr(self, item)
         
     def get_dot_product(self, vector1, vector2):
+        """Calculates dot product of two T-series vectors (Nx3)
+        """
         return np.einsum('ij,ij->i', vector1, vector2)
     
     def get_distance(self, vector):
+        """Calculates euclidian distance of T-series vector (Nx3)
+        """
         return np.sqrt(self.get_dot_product(vector, vector))
     
-    def get_angle(self, left, right):
-        numerator = self.get_dot_product(left, right)
-        denominator = self.get_distance(left)*self.get_distance(right)
+    def get_angle(self, vector1, vector2):
+        """Calcultes angle of T-series vector (Nx3)
+        """
+        numerator = self.get_dot_product(vector1, vector2)
+        denominator = self.get_distance(vector1)*self.get_distance(vector2)
         return np.arccos(numerator/denominator)
     
     def get_rotation_matrix_of_two_unit_vectors(self, unit_vector_a, unit_vector_b):
-        """rotates unit vector a onto unit vector b
+        """Rotates unit vector a onto unit vector b
         """
         # https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
         v = np.cross(unit_vector_a, unit_vector_b)
@@ -38,13 +44,18 @@ class Core:
         return R
     
     def get_rotation_matrix(self, vector_a, vector_b):
-        """ rotates vector a onto vector b # scale change x # origin fixed at( 0, 0, 0)
+        """Returns rotation matrix require for rotation of vector a onto vector b
+        
+        - Assumed vectors are fixed at( 0, 0, 0)
+        - Scale does not change
         """
         unit_vector_a = vector_a/self.get_distance(vector_a).reshape(-1, 1)
         unit_vector_b = vector_b/self.get_distance(vector_b).reshape(-1, 1)
         return self.get_rotation_matrix_of_two_unit_vectors(unit_vector_a, unit_vector_b)
     
     def get_xaxis_rotation_matrix(self, angles):
+        """Returns rotation matrix for x axis rotation when angles are given
+        """
         n = len(angles)
         s = np.cos(angles)
         c = np.sin(angles)
@@ -57,6 +68,8 @@ class Core:
         return R
     
     def get_yaxis_rotation_matrix(self, angles):
+        """Returns rotation matrix for y axis rotation when angles are given
+        """
         n = len(angles)
         s = np.cos(angles)
         c = np.sin(angles)
@@ -69,6 +82,8 @@ class Core:
         return R
     
     def get_zaxis_rotation_matrix(self, angles):
+        """Returns rotation matrix for z axis rotation when angles are given
+        """
         n = len(angles)
         s = np.cos(angles)
         c = np.sin(angles)

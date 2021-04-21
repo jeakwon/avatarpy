@@ -99,9 +99,9 @@ class Avatar(Core):
             docstring = getattr(self.__class__, item).__doc__
             headline = docstring.split('\n')[0].strip() if docstring else ''
             if callable(getattr(self.__class__, item)):
-                functions.append(f"\t{item}: {headline}")
+                functions.append(f"\t{item}: \n\t\t{headline}")
             else:
-                attributes.append(f"\t{item}: {headline}")
+                attributes.append(f"\t{item}: \n\t\t{headline}")
         funcs = '\n'.join(functions)
         attrs = '\n'.join(attributes)
         print(f"""Functions:\n{funcs}\nAttributes:\n{attrs}""")
@@ -211,21 +211,25 @@ class Avatar(Core):
         return np.stack([arr]*len(self.index))
     
     def get_node(self, columns):
+        """Returns T-series node x, y, z coords by assigned index of columns"""
         return self.data[columns].set_axis(['x', 'y', 'z'], axis=1, inplace=False)
     
     def get_vector(self, head, tail):
+        """Returns T-series vector x, y, z coords by assigned index of columns"""
         return pd.DataFrame(head.values-tail.values, columns=['x', 'y', 'z']).set_index(self.data.index)
 
-    def get_axis_data(self, coord):
+    def get_axis_data(self, axis):
+        """Returns axis data of all nodes and vectors"""
         data_dict = {}
         for name, data in self.nodes.items():
-            data_dict[name]=data[coord].values
+            data_dict[name]=data[axis].values
         for name, data in self.vectors.items():
-            data_dict[name]=data[coord].values
+            data_dict[name]=data[axis].values
         return pd.DataFrame(data_dict).set_index(self.data.index)
     
     @property
     def angle(self):
+        """Returns T-series angles between predefined two vectors"""
         data_dict = {}
         for name, vectors in self._angles.items():
             data_dict[name]=self.get_angle(self[vectors['left']], self[vectors['right']])
@@ -233,17 +237,20 @@ class Avatar(Core):
 
     @property
     def vector_length(self):
+        """Returns length of all vectors"""
         data_dict = {}
         for name, vector in self.vectors.items():
             data_dict[name]=self.get_distance(vector)
         return pd.DataFrame(data_dict).set_index(self.data.index)
 
     @property
-    def vector_flexibility(self):
+    def vector_length_zscore(self):
+        """Returns zscores of vector length from all vectors"""
         return self.vector_length.apply(zscore)
     
     @property
     def distance(self):
+        """Returns inter-frame distances of all coords"""
         data_dict = {}
         for name, node in self.nodes.items():
             data_dict[name]=self.get_distance(node.diff())
@@ -251,21 +258,26 @@ class Avatar(Core):
     
     @property
     def velocity(self):
+        """Returns moment velocity of all coords"""
         return self.distance*self.frame_rate
     
     @property
     def acceleration(self):
+        """Returns moment acceleration of all coords"""
         return self.velocity.diff()*self.frame_rate
     
     @property
     def cummulative_distance(self):
+        """Returns cumulative distance of all coords"""
         return self.distance.cumsum()
     
     @property
     def total_distance(self):
+        """Returns total explored distance of all coords """
         return self.cummulative_distance.max()
 
     def get_vector_coords(self, vector_name):
+        """Retruns dataframe dicts of nodes given by vector name."""
         return dict(
             x = self.x[self._vectors[vector_name].values()],
             y = self.y[self._vectors[vector_name].values()],
@@ -273,32 +285,41 @@ class Avatar(Core):
         )
     
     def get_projection(self, vector, to):
+        """Project 3D coordinates on to axis or plane"""
         zero_axis = list(set('xyz')-set(to))
         kwargs = {axis:0 for axis in zero_axis}
         return vector.assign(**kwargs)
     
     def x_projection(self, node): 
+        """Project 3D coordinates on to x axis"""
         return self.get_projection(vector=self[node], to='x')
     
     def y_projection(self, node): 
+        """Project 3D coordinates on to y axis"""
         return self.get_projection(vector=self[node], to='y')
     
     def z_projection(self, node): 
+        """Project 3D coordinates on to z axis"""
         return self.get_projection(vector=self[node], to='z')
     
     def xy_projection(self, node): 
+        """Project 3D coordinates on to xy plane"""
         return self.get_projection(vector=self[node], to='xy')
     
     def yz_projection(self, node): 
-        return self.get_projection(vector=self[node], to='xz')
+        """Project 3D coordinates on to yz plane"""
+        return self.get_projection(vector=self[node], to='yz')
     
     def xz_projection(self, node): 
-        return self.get_projection(vector=self[node], to='yz')
+        """Project 3D coordinates on to xz plane"""
+        return self.get_projection(vector=self[node], to='xz')
     
     @property
     def transform(self):
+        """Transform module for coordinate change"""
         return Transform(parent=self)
     
     @property
     def animate(self):
+        """Animation module for coordinate change"""
         return Animate(parent=self)
