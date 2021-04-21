@@ -104,7 +104,8 @@ class Avatar(Core):
                 attributes.append(f"\t{item}: \n\t\t{headline}")
         funcs = '\n'.join(functions)
         attrs = '\n'.join(attributes)
-        print(f"""Functions:\n{funcs}\nAttributes:\n{attrs}""")
+        print(f"""Visit https://github.com/jeakwon/avatarpy\n
+            Functions:\n{funcs}\nAttributes:\n{attrs}""")
             
     def set_nodes(self):
         """Set node attributes in avatar with predefined node info in `cls._nodes`"""
