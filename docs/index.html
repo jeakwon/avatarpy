@@ -1,6 +1,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
   </head>
   <body>
     <script>
@@ -26,7 +27,7 @@
             // Header End
 
             // Body Start
-            htmlString += `<div id="collapse${file.name}" class="collapse show" aria-labelledby="heading${file.name}">`;
+            htmlString += `<div id="collapse${file.name}" class="collapse hide" aria-labelledby="heading${file.name}">`;
             htmlString += `<div class="card-body">`;
               
             htmlString += `<ul class="list-group list-group-flush">`;
@@ -48,7 +49,14 @@
       }
 
       (async () => {
-        htmlString = await asyncCall('https://api.github.com/repos/jeakwon/avatarpy/contents/docs/')
+        htmlString = `
+        <nav class="navbar navbar-dark bg-dark">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="https://jeakwon.github.io/avatarpy">Avatarpy</a>
+            <a href="http://github.com/jeakwon/avatarpy" style="color: #ffffff" title="github"><i class="fa fa-github fa-2x"></i></a>
+          </div>
+        </nav>`
+        htmlString += await asyncCall('https://api.github.com/repos/jeakwon/avatarpy/contents/docs/')
         document.getElementsByTagName('body')[0].innerHTML = htmlString;
       })()
       
