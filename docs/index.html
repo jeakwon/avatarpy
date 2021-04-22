@@ -30,8 +30,8 @@
             htmlString += `<div class="card-body">`;
               
             htmlString += `<ul class="list-group list-group-flush">`;
-            parent_dir += file.name+'/'
-            htmlString += await asyncCall(url+file.name, parent_dir);
+            dir_name = parent_dir + file.name+'/'
+            htmlString += await asyncCall(url+file.name, dir_name);
             htmlString += `</ul>`;
             
             htmlString += `</div>`;
@@ -40,7 +40,7 @@
             
             htmlString += `</div>`;
           } else {
-            htmlString += `<li class="list-group-item"><a href="${parent_dir+file.name}">${file.name}</a></li>`;
+            htmlString += `<li class="list-group-item"><a href="${dir_name+file.name}">${file.name}</a></li>`;
           }
         }
         htmlString += `</div>`
