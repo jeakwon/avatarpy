@@ -162,4 +162,4 @@ avatar.animate(avatar.index[0:100]).save('freely_moving_0_to_100.html')
 # avatar.animate(avatar.index[:100]).show()
 ```
 You can check sample avatar animation html file with link below created by plotly.
-https://jeakwon.github.io/avatarpy/freely_moving_0_to_100.html
+https://jeakwon.github.io/avatarpy/animation/freely_moving_0_to_100.html
