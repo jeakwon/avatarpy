@@ -6,6 +6,9 @@ Python analysis module for AVATAR recording system.
 pip install avatarpy
 ```
 
+## Examples available at
+https://jeakwon.github.io/avatarpy
+
 ## Quick Start
 ```python
 from avatarpy import Avatar
