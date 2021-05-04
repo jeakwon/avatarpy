@@ -32,6 +32,7 @@
               
             htmlString += `<ul class="list-group list-group-flush">`;
             dir_name = parent_dir + file.name+'/'
+            if (url.substr(-1) != '/') url += '/';
             htmlString += await asyncCall(url+file.name, dir_name);
             htmlString += `</ul>`;
             
