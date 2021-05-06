@@ -324,3 +324,15 @@ class Avatar(Core):
     def animate(self):
         """Animation module for coordinate change"""
         return Animate(parent=self)
+
+    def corr(self, data, window=None, center=True, **kwargs):
+        """Returns rolling correlation with given property of data
+        
+        :param data: (str|pd.DataFrame)
+        :param window: (int|None) if provided rolling corr is provided
+        """
+        if isinstance(data, str):
+            data = self[data]
+        if window==None:
+            return self.flatten_corr(data.corr())
+        return self.get_rolling_corr(data, window, center, **kwargs)

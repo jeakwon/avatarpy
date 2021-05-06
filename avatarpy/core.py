@@ -94,3 +94,17 @@ class Core:
         R[:, 1, 0]=s
         R[:, 1, 1]=c
         return R
+
+    def flatten_corr(self, df_corr):
+        """Returns unique labeled correlations from correlation matrix.
+        """
+        mask = np.tril(np.ones(df_corr.shape).astype(np.bool))
+        s = df_corr.mask(mask).stack()
+        s.index = s.index.map(lambda x: '_'.join(x[-2:]))
+        return s
+
+    def get_rolling_corr(self, df, window=20, center=True, **kwargs):
+        """Returns flattened rolling correlations.
+        """
+        rolling_corr = df.rolling(window, center=center, **kwargs).corr()
+        return rolling_corr.groupby(level=0).apply(lambda x: self.flatten_corr(x)).unstack()
