@@ -235,6 +235,16 @@ class Avatar(Core):
         for name, vectors in self._angles.items():
             data_dict[name]=self.get_angle(self[vectors['left']], self[vectors['right']])
         return pd.DataFrame(data_dict).set_index(self.data.index)
+    
+    @property
+    def angle_velocity(self):
+        """Returns T-series angles velocity between predefined two vectors"""
+        return self.angle.diff()*self.frame_rate
+    
+    @property
+    def angle_acceleration(self):
+        """Returns T-series angles acceleration between predefined two vectors"""
+        return self.angle_velocity.diff()*self.frame_rate
 
     @property
     def vector_length(self):
