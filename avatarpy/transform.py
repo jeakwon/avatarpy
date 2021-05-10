@@ -7,7 +7,7 @@ class Transform:
         self.__parent = parent
         
     def __repr__(self):
-        return f'Transformer object of {self.__parent}'
+        return f'Transform object of {self.__parent}'
 
     def level(self):
         """수평맞추기

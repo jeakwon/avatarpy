@@ -1,6 +1,8 @@
 from avatarpy.core import Core
 from avatarpy.transform import Transform
 from avatarpy.animate import Animate
+from avatarpy.describe import Describe
+
 
 import numpy as np
 import pandas as pd
@@ -43,12 +45,13 @@ class Avatar(Core):
         'rleg':{'left':'rleg', 'right':'hbody'},
     }
 
-    def __init__(self, csv_path, frame_rate=20, ID=None, horizontal_correction=True):
+    def __init__(self, csv_path, frame_rate=20, ID=None, tags={}, horizontal_correction=True):
         self._csv_path = csv_path
         self._data = pd.read_csv(csv_path, header=None)
         self._frame_rate = frame_rate
         if frame_rate: self.data.index/=frame_rate
         self._ID=ID if ID else self.csv_path
+        self._tags = tags
         self.set_nodes()
         self.set_vectors()
         
@@ -85,6 +88,13 @@ class Avatar(Core):
     @ID.setter
     def ID(self, v):
         self._ID = v
+    @property
+    def tags(self):
+        """User provided tags for avatar instance. add tags by dict (ex, {'genotype':'wt'})"""
+        return self._tags
+    @tags.setter
+    def tags(self, v):
+        self._tags = v
 
     def __repr__(self):
         return f'Avatar({self.ID})'
@@ -255,8 +265,8 @@ class Avatar(Core):
         return pd.DataFrame(data_dict).set_index(self.data.index)
 
     @property
-    def vector_length_zscore(self):
-        """Returns zscores of vector length from all vectors"""
+    def stretch_index(self):
+        """Returns stretch_index which is equal to zscore of vector length"""
         return self.vector_length.apply(zscore)
     
     @property
@@ -279,7 +289,7 @@ class Avatar(Core):
     
     @property
     def cummulative_distance(self):
-        """Returns cumulative distance of all coords"""
+        """Returns T-series cumulative distance of all coords"""
         return self.distance.cumsum()
     
     @property
@@ -335,6 +345,11 @@ class Avatar(Core):
         """Animation module for coordinate change"""
         return Animate(parent=self)
 
+    @property
+    def describe(self):
+        """Feature Extract module for coordinate change"""
+        return Describe(parent=self)
+
     def corr(self, data, window=None, center=True, **kwargs):
         """Returns rolling correlation with given property of data
         
@@ -344,5 +359,25 @@ class Avatar(Core):
         if isinstance(data, str):
             data = self[data]
         if window==None:
-            return self.flatten_corr(data.corr())
+            return self.flatten_pairwise_df(data.corr())
         return self.get_rolling_corr(data, window, center, **kwargs)
+
+    def xcorr_lag(self, data, flatten=True):
+        """Returns cross correlation time lag by parwise column calculation. See also xcorr_max
+        """
+        if isinstance(data, str):
+            data = self[data]
+        df = self.pairwise_apply_func(data, lambda in1, in2: self.xcorr(in1, in2)['lag']/self.frame_rate)
+        if flatten:
+            return self.flatten_pairwise_df(df)
+        return df
+
+    def xcorr_max(self, data, flatten=True):
+        """Returns cross correlation max value by parwise column calculation. See also xcorr_lag
+        """
+        if isinstance(data, str):
+            data = self[data]
+        df = self.pairwise_apply_func(data, lambda in1, in2: self.xcorr(in1, in2)['max'])
+        if flatten:
+            return self.flatten_pairwise_df(df)
+        return data

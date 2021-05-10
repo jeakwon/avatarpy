@@ -1,28 +1,30 @@
 import numpy as np
+import pandas as pd
+from scipy.signal import correlate
 
 class Core:   
     def __getitem__(self, item):
         return getattr(self, item)
         
     def get_dot_product(self, vector1, vector2):
-        """Calculates dot product of two T-series vectors (Nx3)
+        r"""Calculates dot product of two T-series vectors (Nx3)
         """
         return np.einsum('ij,ij->i', vector1, vector2)
     
     def get_distance(self, vector):
-        """Calculates euclidian distance of T-series vector (Nx3)
+        r"""Calculates euclidian distance of T-series vector (Nx3)
         """
         return np.sqrt(self.get_dot_product(vector, vector))
     
     def get_angle(self, vector1, vector2):
-        """Calcultes angle of T-series vector (Nx3)
+        r"""Calcultes angle of T-series vector (Nx3)
         """
         numerator = self.get_dot_product(vector1, vector2)
         denominator = self.get_distance(vector1)*self.get_distance(vector2)
         return np.arccos(numerator/denominator)
     
     def get_rotation_matrix_of_two_unit_vectors(self, unit_vector_a, unit_vector_b):
-        """Rotates unit vector a onto unit vector b
+        r"""Rotates unit vector a onto unit vector b
         """
         # https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
         v = np.cross(unit_vector_a, unit_vector_b)
@@ -44,7 +46,7 @@ class Core:
         return R
     
     def get_rotation_matrix(self, vector_a, vector_b):
-        """Returns rotation matrix require for rotation of vector a onto vector b
+        r"""Returns rotation matrix require for rotation of vector a onto vector b
         
         - Assumed vectors are fixed at( 0, 0, 0)
         - Scale does not change
@@ -54,7 +56,7 @@ class Core:
         return self.get_rotation_matrix_of_two_unit_vectors(unit_vector_a, unit_vector_b)
     
     def get_xaxis_rotation_matrix(self, angles):
-        """Returns rotation matrix for x axis rotation when angles are given
+        r"""Returns rotation matrix for x axis rotation when angles are given
         """
         n = len(angles)
         s = np.cos(angles)
@@ -68,7 +70,7 @@ class Core:
         return R
     
     def get_yaxis_rotation_matrix(self, angles):
-        """Returns rotation matrix for y axis rotation when angles are given
+        r"""Returns rotation matrix for y axis rotation when angles are given
         """
         n = len(angles)
         s = np.cos(angles)
@@ -82,7 +84,7 @@ class Core:
         return R
     
     def get_zaxis_rotation_matrix(self, angles):
-        """Returns rotation matrix for z axis rotation when angles are given
+        r"""Returns rotation matrix for z axis rotation when angles are given
         """
         n = len(angles)
         s = np.cos(angles)
@@ -95,16 +97,90 @@ class Core:
         R[:, 1, 1]=c
         return R
 
-    def flatten_corr(self, df_corr):
-        """Returns unique labeled correlations from correlation matrix.
+    def flatten_pairwise_df(self, df, diagonal_only=True):
+        r"""Flatten the pairwise symmetric df
         """
-        mask = np.tril(np.ones(df_corr.shape).astype(np.bool))
-        s = df_corr.mask(mask).stack()
+        if diagonal_only:
+            mask = np.tril(np.ones(df.shape).astype(np.bool))
+            s = df.mask(mask).stack()
+        else:
+            s = df.stack()
         s.index = s.index.map(lambda x: '_'.join(x[-2:]))
         return s
 
     def get_rolling_corr(self, df, window=20, center=True, **kwargs):
-        """Returns flattened rolling correlations.
+        r"""Returns flattened rolling correlations.
         """
         rolling_corr = df.rolling(window, center=center, **kwargs).corr()
-        return rolling_corr.groupby(level=0).apply(lambda x: self.flatten_corr(x)).unstack()
+        return rolling_corr.groupby(level=0).apply(lambda x: self.flatten_pairwise_df(x)).unstack()
+
+    @staticmethod
+    def xcorr(in1, in2=None, mode='same', normalize=True):
+        r"""Calculates cross correlation of two inputs
+
+        :params in1: np.array or pd.Series
+        :params in2: np.array or pd.Series
+        :params mode: {'full'|'same'|'valid'}
+        :params normalize: bool
+        :returns: dict['lags', 'corr', 'corr_max', 'lag']
+        """
+        def inval(x):
+            if isinstance(x, pd.Series): 
+                x = x.to_numpy()
+
+            if normalize: 
+                x = (x-x.mean())/x.std()
+            return x
+
+        def correlation_lags(in1_len, in2_len, mode='full'):
+            if mode == "full":
+                lags = np.arange(-in2_len + 1, in1_len)
+            elif mode == "same":
+                lags = np.arange(-in2_len + 1, in1_len)
+                mid = lags.size // 2
+                lag_bound = in1_len // 2
+                if in1_len % 2 == 0:
+                    lags = lags[(mid-lag_bound):(mid+lag_bound)]
+                else:
+                    lags = lags[(mid-lag_bound):(mid+lag_bound)+1]
+            elif mode == "valid":
+                lag_bound = in1_len - in2_len
+                if lag_bound >= 0:
+                    lags = np.arange(lag_bound + 1)
+                else:
+                    lags = np.arange(lag_bound, 1)
+            return lags
+
+        x1 = inval(in1)
+        x2 = inval(in2)
+        corr = correlate(x1, x2)
+
+        lags = correlation_lags(len(x1), len(x2))
+        lag = lags[corr.argmax()]
+
+        if normalize:
+            corr /= len(corr)//2
+        max_corr = np.clip(corr.max(), -1, 1)
+        return dict(lags=lags, corr=corr, max=max_corr, lag=lag)
+
+    @staticmethod
+    def pairwise_apply_func(df, func):
+        ndf = df._get_numeric_data()
+        lbl = ndf.columns
+        mat = ndf.to_numpy().T
+
+        K = len(lbl)
+        data = np.empty((K, K), dtype=float)
+        mask = np.isfinite(mat)
+        for i, ac in enumerate(mat):
+            for j, bc in enumerate(mat):
+                valid = mask[i] & mask[j]
+                if valid.sum() < 1:
+                    c = np.nan
+                elif not valid.all():
+                    c = func(ac[valid], bc[valid])
+                else:
+                    c = func(ac, bc)
+                data[i, j] = c
+        return pd.DataFrame(data, index=lbl, columns=lbl)
+
