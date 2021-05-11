@@ -2,6 +2,7 @@ from avatarpy.core import Core
 from avatarpy.transform import Transform
 from avatarpy.animate import Animate
 from avatarpy.describe import Describe
+from avatarpy.annotation import Annotation
 
 
 import numpy as np
@@ -54,6 +55,13 @@ class Avatar(Core):
         self._tags = tags
         self.set_nodes()
         self.set_vectors()
+
+        self._transform = Transform(parent=self)
+        self._animate = Animate(parent=self)
+        self._describe = Describe(parent=self)
+        self._annotation = Annotation(parent=self)
+        # self._human_annotation = HumanAnnotation(parent=self)
+        # self._heuristic_annotation = HeuristicAnnotation(parent=self)
         
         if horizontal_correction:
             self.data = self.transform.level().data
@@ -338,17 +346,32 @@ class Avatar(Core):
     @property
     def transform(self):
         """Transform module for coordinate change"""
-        return Transform(parent=self)
+        return self._transform
     
     @property
     def animate(self):
         """Animation module for coordinate change"""
-        return Animate(parent=self)
+        return self._animate
 
     @property
     def describe(self):
         """Feature Extract module for coordinate change"""
-        return Describe(parent=self)
+        return self._describe
+
+    @property
+    def annotation(self):
+        """Annotation module for behavior screening"""
+        return self._annotation
+
+    # @property
+    # def human_annotation(self):
+    #     """Feature Extract module for coordinate change"""
+    #     return self._human_annotation
+
+    # @property
+    # def heuristic_annotation(self):
+    #     """Feature Extract module for coordinate change"""
+    #     return self._heuristic_annotation
 
     def corr(self, data, window=None, center=True, **kwargs):
         """Returns rolling correlation with given property of data
@@ -381,3 +404,6 @@ class Avatar(Core):
         if flatten:
             return self.flatten_pairwise_df(df)
         return data
+
+    def apply(self, func):
+        return func(self)

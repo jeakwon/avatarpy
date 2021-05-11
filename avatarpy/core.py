@@ -115,12 +115,11 @@ class Core:
         return rolling_corr.groupby(level=0).apply(lambda x: self.flatten_pairwise_df(x)).unstack()
 
     @staticmethod
-    def xcorr(in1, in2=None, mode='same', normalize=True):
+    def xcorr(in1, in2=None):
         r"""Calculates cross correlation of two inputs
 
         :params in1: np.array or pd.Series
         :params in2: np.array or pd.Series
-        :params mode: {'full'|'same'|'valid'}
         :params normalize: bool
         :returns: dict['lags', 'corr', 'corr_max', 'lag']
         """
@@ -128,28 +127,11 @@ class Core:
             if isinstance(x, pd.Series): 
                 x = x.to_numpy()
 
-            if normalize: 
-                x = (x-x.mean())/x.std()
+            x = (x-x.mean())/x.std()
             return x
 
-        def correlation_lags(in1_len, in2_len, mode='full'):
-            if mode == "full":
-                lags = np.arange(-in2_len + 1, in1_len)
-            elif mode == "same":
-                lags = np.arange(-in2_len + 1, in1_len)
-                mid = lags.size // 2
-                lag_bound = in1_len // 2
-                if in1_len % 2 == 0:
-                    lags = lags[(mid-lag_bound):(mid+lag_bound)]
-                else:
-                    lags = lags[(mid-lag_bound):(mid+lag_bound)+1]
-            elif mode == "valid":
-                lag_bound = in1_len - in2_len
-                if lag_bound >= 0:
-                    lags = np.arange(lag_bound + 1)
-                else:
-                    lags = np.arange(lag_bound, 1)
-            return lags
+        def correlation_lags(in1_len, in2_len):
+            return  np.arange(-in2_len + 1, in1_len)
 
         x1 = inval(in1)
         x2 = inval(in2)
@@ -158,8 +140,7 @@ class Core:
         lags = correlation_lags(len(x1), len(x2))
         lag = lags[corr.argmax()]
 
-        if normalize:
-            corr /= len(corr)//2
+        corr /= len(corr)-1
         max_corr = np.clip(corr.max(), -1, 1)
         return dict(lags=lags, corr=corr, max=max_corr, lag=lag)
 

@@ -14,7 +14,6 @@ class AvaLens:
         assert id_policy in ['filepath','incremental','provide','basename'], 'wrong argument for id_policy'
         assert tag_policy in ['provide','dirname'], 'wrong argument for id_policy'
         self._avatars = []
-        self._describes = []
         self.id_policy = id_policy
         self.tag_policy = tag_policy
 
@@ -26,11 +25,7 @@ class AvaLens:
         """User Added avatars"""
         return self._avatars
 
-    @property
-    def all(self):
-        return pd.concat(self.describes).reset_index(drop=True)
-
-    def add_file(self, csv_path, ID=None, tags={}, verbose=2):
+    def add_file(self, csv_path, ID=None, tags={}, verbose=1):
         if self.id_policy == 'filepath':
             ID = csv_path
         elif self.id_policy == 'incremental':
@@ -53,12 +48,12 @@ class AvaLens:
             print(f'[{datetime.now()}] Added new Avatar(csv_path={csv_path}, ID={ID}, tags={tags})')
         return self
 
-    def add_folder(self, root, ID=None, tags={}):
+    def add_folder(self, root, ID=None, tags={}, verbose=1):
         for path, subdirs, files in os.walk(root):
             for name in files:
                 if name.lower().endswith('.csv'):
                     csv_path = os.path.join(path, name)
-                    self.add_file(csv_path, ID, tags)
+                    self.add_file(csv_path, ID, tags, verbose=verbose)
         return self
 
     def describe(self, indices=None, include=['corr', 'stat'], assign_ID=True, assign_tags=True):
@@ -66,7 +61,7 @@ class AvaLens:
         for avatar in self.avatars: 
             desc = avatar.describe(indices=indices, include=include, assign_ID=assign_ID, assign_tags=assign_tags)
             describes.append(desc)
-        return pd.concat(describes)
+        return pd.concat(describes).reset_index(drop=True)
 
     @property
     def search_event(self):
