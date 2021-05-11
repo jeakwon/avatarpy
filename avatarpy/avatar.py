@@ -363,16 +363,6 @@ class Avatar(Core):
         """Annotation module for behavior screening"""
         return self._annotation
 
-    # @property
-    # def human_annotation(self):
-    #     """Feature Extract module for coordinate change"""
-    #     return self._human_annotation
-
-    # @property
-    # def heuristic_annotation(self):
-    #     """Feature Extract module for coordinate change"""
-    #     return self._heuristic_annotation
-
     def corr(self, data, window=None, center=True, **kwargs):
         """Returns rolling correlation with given property of data
         

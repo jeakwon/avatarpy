@@ -49,6 +49,8 @@ class Describe:
                     columns={'index':'target', 0:'value'}).assign(feature=feature, category='statistics', type='mean'),
                 data.std()    .reset_index().rename(
                     columns={'index':'target', 0:'value'}).assign(feature=feature, category='statistics', type='std'),
+                (data.mean()/data.std())     .reset_index().rename(
+                    columns={'index':'target', 0:'value'}).assign(feature=feature, category='statistics', type='cv'),
                 data.median() .reset_index().rename(
                     columns={'index':'target', 0:'value'}).assign(feature=feature, category='statistics', type='median'),
                 data.skew()   .reset_index().rename(
