@@ -1,5 +1,8 @@
 import os
+import numpy as np
 import pandas as pd
+import warnings
+from sklearn import metrics
 
 class Annotation:
     def __init__(self, parent=None):
@@ -23,7 +26,11 @@ class Annotation:
             assert os.path.splitext(csv_path)[1].lower() == '.csv', 'Wrong file type error. provide .csv file'
             if csv_path:
                 data = pd.read_csv(csv_path, header=None)[0].values
-                index = self.__parent.index[:len(data)]
+                index = self.__parent.index
+                N, K = len(data), len(index)
+                if N != K:
+                    data = np.zeros_like(index)[:N]
+                    warnings.warn(f'Warning your input csv file length({N}) miss match with avatar index({K})')
                 name = name if name else csv_path
                 self.__annotation[name] = pd.Series(data=data, index=index).astype(bool)
             return self.__annotation
@@ -64,3 +71,21 @@ class Annotation:
         """Returns annotation indices.
         """
         return self.__annotation.index[self.__annotation[name]]
+
+    def metrics(self, true, pred, includes=["confusion_matrix", "accuracy_score", "recall_score", "precision_score", "f1_score", "jaccard_score"]):
+        """Returns metrics of given pred, true data
+
+        :param true: np.array or list of int(0 or 1) or boolean, should be equal length with `pred`
+        :param pred: np.array or list of int(0 or 1) or boolean
+
+        :returns: dict of metric
+        """
+        ret = {}
+        for include in includes:
+            metric_func = getattr(metrics, include)
+            
+            true = true.astype(int) if true.dtype == bool else true
+            pred = pred.astype(int) if pred.dtype == bool else pred
+            ret[include] = metric_func(true, pred)
+        return ret
+
