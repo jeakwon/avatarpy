@@ -15,11 +15,11 @@ from pprint import pprint
 
 csv_path = dataset['freely_moving']
 avatar = Avatar(csv_path)
-# annot = avatar.annotation(r"C:\Users\Jay\Desktop\annotex.csv")
-avatar.annotation.add(by=lambda avatar: (avatar['velocity']<0.5).all(axis=1), name='walk_search')
+annot = avatar.annotation(r"C:\Users\Jay\Desktop\annotex.csv")
+# avatar.annotation.add(by=lambda avatar: (avatar['velocity']<0.5).all(axis=1), name='walk_search')
 avatar.annotation.add(by=lambda avatar: (avatar['acceleration']<0.5).all(axis=1), name='walk_human')
 # indices = avatar.annotation.get_indices('freeze')
 df = avatar.annotation()
 print(df)
-metrics = avatar.annotation.metrics(true = df['walk_search'], pred = df['walk_human'])
-pprint(metrics)
+# metrics = avatar.annotation.metrics(true = df['walk_search'], pred = df['walk_human'])
+# pprint(metrics)

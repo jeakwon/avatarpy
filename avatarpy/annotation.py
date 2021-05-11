@@ -27,10 +27,15 @@ class Annotation:
             if csv_path:
                 data = pd.read_csv(csv_path, header=None)[0].values
                 index = self.__parent.index
-                N, K = len(data), len(index)
-                if N != K:
-                    data = np.zeros_like(index)[:N]
-                    warnings.warn(f'Warning your input csv file length({N}) miss match with avatar index({K})')
+                n_data, n_index = len(data), len(index)
+                if n_data > n_index:
+                    data = data[:n_index]
+                    warnings.warn(f'Warning your input csv file length({n_data}) miss match with avatar index({n_index})')
+                elif n_data < n_index:
+                    zeros = np.zeros_like(index)
+                    zeros[:n_data] = data
+                    data = zeros
+                    warnings.warn(f'Warning your input csv file length({n_data}) miss match with avatar index({n_index})')
                 name = name if name else csv_path
                 self.__annotation[name] = pd.Series(data=data, index=index).astype(bool)
             return self.__annotation
