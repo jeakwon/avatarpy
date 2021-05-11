@@ -1,4 +1,4 @@
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 from avatarpy.avatar import Avatar
 from avatarpy.avalens import AvaLens
