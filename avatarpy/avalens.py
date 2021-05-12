@@ -56,11 +56,18 @@ class AvaLens:
                     self.add_file(csv_path, ID, tags, verbose=verbose)
         return self
 
-    def describe(self, indices=None, include=['corr', 'stat'], assign_ID=True, assign_tags=True):
+    def describe(self, include=['corr', 'stat'], func_kws={}, indices=None, assign_ID=True, assign_tags=True):
         describes = []
-        for avatar in self.avatars: 
-            desc = avatar.describe(indices=indices, include=include, assign_ID=assign_ID, assign_tags=assign_tags)
-            describes.append(desc)
+        for avatar in self.avatars:
+            if func_kws:
+                for name, func in func_kws.items():
+                    avatar.annotation.add(by=func, name=name)
+                    indices = avatar.annotation.get_indices(name)
+                    desc = avatar.describe(indices=indices, include=include, assign_ID=assign_ID, assign_tags=assign_tags).assign(event=name)
+                    describes.append(desc)
+            else:
+                desc = avatar.describe(indices=indices, include=include, assign_ID=assign_ID, assign_tags=assign_tags)
+                describes.append(desc)
         return pd.concat(describes).reset_index(drop=True)
 
     @property
@@ -73,7 +80,7 @@ class SearchEvent:
         self.__events = []
         self.__event_name = ''
 
-    def __call__(self, func, name, length=20, verbos=2):
+    def __call__(self, func, name, length=20, verbos=1):
         """Search event by given function.
         """
         assert callable(func), 'func should be callable'
