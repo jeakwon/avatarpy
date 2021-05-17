@@ -398,7 +398,7 @@ class Avatar(Core):
     def apply(self, func):
         return func(self)
 
-    def gather(self, features=['x', 'y', 'z', 'velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index'], multi_index=False):
+    def gather(self, features=['x', 'y', 'z', 'aop_x', 'aop_y', 'aop_z', 'aoa_x', 'aoa_y', 'aoa_z', 'velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index'], multi_index=False):
         df = pd.concat({feature:self[feature] for feature in features}, axis=1)
         if not multi_index:
             df.columns = df.columns.map('_'.join)
@@ -409,3 +409,37 @@ class Avatar(Core):
         if not multi_index:
             df.columns = df.columns.map('_'.join)
         return df
+
+    def aop(self, *args, **kwargs):
+        """Transforms avatar coords. Align on plane.
+        """
+        return self.transform.align_on_plane(*args, **kwargs)
+    
+    def aoa(self, *args, **kwargs):
+        """Transforms avatar coords. Align on axis.
+        """
+        return self.transform.align_on_plane(*args, **kwargs)
+
+    @property
+    def aop_x(self):
+        return self.aop()['x']
+
+    @property
+    def aop_y(self):
+        return self.aop()['y']
+    
+    @property
+    def aop_z(self):
+        return self.aop()['z']
+
+    @property
+    def aoa_x(self):
+        return self.aoa()['x']
+
+    @property
+    def aoa_y(self):
+        return self.aoa()['y']
+    
+    @property
+    def aoa_z(self):
+        return self.aoa()['z']

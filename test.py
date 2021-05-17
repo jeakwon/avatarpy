@@ -22,7 +22,7 @@ from pprint import pprint
 csv_path = dataset['freely_moving']
 avatar = Avatar(csv_path)
 print(avatar.gather())
-print(avatar.gather_corrs())
+# print(avatar.gather_corrs())
 # annot = avatar.annotation(r"C:\Users\Jay\Desktop\annotex.csv")
 # avatar.annotation.add(by=lambda avatar: (avatar['velocity']<0.5).all(axis=1), name='walk_search')
 # avatar.annotation.add(by=lambda avatar: (avatar['acceleration']<0.5).all(axis=1), name='walk_human')
