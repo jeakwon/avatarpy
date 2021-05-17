@@ -397,3 +397,15 @@ class Avatar(Core):
 
     def apply(self, func):
         return func(self)
+
+    def gather(self, features=['x', 'y', 'z', 'velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index'], multi_index=False):
+        df = pd.concat({feature:self[feature] for feature in features}, axis=1)
+        if not multi_index:
+            df.columns = df.columns.map('_'.join)
+        return df
+
+    def gather_corrs(self, window=20, features=['velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index'], multi_index=False):
+        df = pd.concat({f:self.corr(f, window=window) for f in features}, axis=1)
+        if not multi_index:
+            df.columns = df.columns.map('_'.join)
+        return df
