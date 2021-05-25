@@ -7,6 +7,7 @@ from avatarpy.annotation import Annotation
 
 import numpy as np
 import pandas as pd
+from itertools import combinations
 from scipy.stats import zscore
 
 class Avatar(Core):
@@ -245,7 +246,21 @@ class Avatar(Core):
         for name, data in self.vectors.items():
             data_dict[name]=data[axis].values
         return pd.DataFrame(data_dict).set_index(self.data.index)
+
+    def get_triangular_area_by_nodes(self, node1, node2, node3):
+        r"""Calcultes triangular area by node names"""
+        coord1, coord2, coord3 = self[node1], self[node2], self[node3]
+        name = '_'.join([node1, node2, node3])
+        data = self.get_triangular_area_by_coords(coord1, coord2, coord3)
+        return pd.Series(data=data, name=name, index=self.data.index)
     
+    @property
+    def area(self):
+        """Returns T-series areas from all combination of nodes"""
+        nodes_combinations = list(combinations(self.nodes.keys(), 3))
+        return pd.DataFrame([self.get_triangular_area_by_nodes(*c) for c in nodes_combinations]).T
+
+
     @property
     def angle(self):
         """Returns T-series angles between predefined two vectors"""
@@ -398,7 +413,7 @@ class Avatar(Core):
     def apply(self, func):
         return func(self)
 
-    def gather(self, features=['x', 'y', 'z', 'aop_x', 'aop_y', 'aop_z', 'aoa_x', 'aoa_y', 'aoa_z', 'velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index'], multi_index=False):
+    def gather(self, features=['x', 'y', 'z', 'aop_x', 'aop_y', 'aop_z', 'aoa_x', 'aoa_y', 'aoa_z', 'velocity', 'acceleration', 'angle', 'angle_velocity', 'angle_acceleration', 'stretch_index', 'area'], multi_index=False):
         df = pd.concat({feature:self[feature] for feature in features}, axis=1)
         if not multi_index:
             df.columns = df.columns.map('_'.join)

@@ -10,6 +10,11 @@ class Core:
         r"""Calculates dot product of two T-series vectors (Nx3)
         """
         return np.einsum('ij,ij->i', vector1, vector2)
+        
+    def get_cross_product(self, vector1, vector2):
+        r"""Calculates cross product of two T-series vectors (Nx3)
+        """
+        return np.cross(vector1, vector2)
     
     def get_distance(self, vector):
         r"""Calculates euclidian distance of T-series vector (Nx3)
@@ -22,6 +27,18 @@ class Core:
         numerator = self.get_dot_product(vector1, vector2)
         denominator = self.get_distance(vector1)*self.get_distance(vector2)
         return np.arccos(numerator/denominator)
+    
+    def get_triangular_area_by_vectors(self, vector1, vector2):
+        r"""Calcultes triangular area of T-series vector (Nx3)
+        """
+        cross_product = np.cross(vector1, vector2)
+        return np.linalg.norm(cross_product, axis=1)/2
+    
+    def get_triangular_area_by_coords(self, coord1, coord2, coord3):
+        r"""Calcultes triangular area by 3 T-series coords (Nx3)
+        """
+        vector1, vector2 = coord1-coord3, coord2-coord3
+        return self.get_triangular_area_by_vectors(vector1, vector2)
     
     def get_rotation_matrix_of_two_unit_vectors(self, unit_vector_a, unit_vector_b):
         r"""Rotates unit vector a onto unit vector b
