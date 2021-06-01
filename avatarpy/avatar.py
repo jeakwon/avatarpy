@@ -433,7 +433,7 @@ class Avatar(Core):
     def aoa(self, *args, **kwargs):
         """Transforms avatar coords. Align on axis.
         """
-        return self.transform.align_on_plane(*args, **kwargs)
+        return self.transform.align_on_axis(*args, **kwargs)
 
     @property
     def aop_x(self):
